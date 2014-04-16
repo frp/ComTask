@@ -1,5 +1,11 @@
 #include "Dll.h"
 #include "ExplorerExtension.h"
+#include "FileItem.h"
+#include "FileProcessor.h"
+#include <list>
+#include <cstdlib>
+#include <fstream>
+#include <codecvt>
 
 static WCHAR const verbDisplayName[] = L"Calculate the Sum";
 static WCHAR const c_szVerbName[] = L"Task.CalcTheSum";
@@ -109,6 +115,9 @@ IFACEMETHODIMP ExplorerExtension::GetSite(REFIID riid, void **ppv)
 
 DWORD ExplorerExtension::_ThreadProc()
 {
+	using namespace std;
+	using namespace boost::posix_time;
+
     IShellItemArray *psia;
     HRESULT hr = CoGetInterfaceAndReleaseStream(m_shellItemArray, IID_PPV_ARGS(&psia)); // Unmarshall data from Stream
     m_shellItemArray = NULL;
@@ -117,23 +126,34 @@ DWORD ExplorerExtension::_ThreadProc()
         DWORD count;
         psia->GetCount(&count);
 
+		list<FileItem> items;
+		
         IShellItem2 *psi;
-        HRESULT hr = GetItemAt(psia, 0, IID_PPV_ARGS(&psi));
+		for (DWORD i = 0; i < count && SUCCEEDED(hr); i++)
+		{
+			hr = GetItemAt(psia, i, IID_PPV_ARGS(&psi));
+			if (SUCCEEDED(hr))
+			{
+				PWSTR pszName;
+				hr = psi->GetDisplayName(SIGDN_PARENTRELATIVEPARSING, &pszName);
+				if (SUCCEEDED(hr))
+				{
+					items.push_back({ pszName, 0, ptime() });
+					CoTaskMemFree(pszName);
+				}
+				psi->Release();
+			}
+		}
+        
         if (SUCCEEDED(hr))
         {
-            PWSTR pszName;
-            hr = psi->GetDisplayName(SIGDN_PARENTRELATIVEPARSING, &pszName);
-            if (SUCCEEDED(hr))
-            {
-                WCHAR szMsg[128];
-                StringCchPrintf(szMsg, ARRAYSIZE(szMsg), L"%d item(s), first item is named %s", count, pszName);
-
-                MessageBox(_hwnd, szMsg, L"ExplorerCommand Sample Verb", MB_OK);
-
-                CoTaskMemFree(pszName);
-            }
-
-            psi->Release();
+			wstring profile = _wgetenv(L"userprofile");
+			if (profile[profile.size() - 1] != L'\\')
+				profile += L'\\';
+			wofstream logfile(profile + L"calclog.txt", wios::out | wios::app);
+			logfile.imbue(std::locale(logfile.getloc(), new std::codecvt_utf8_utf16<wchar_t>));
+			FileProcessor processor(logfile);
+			processor.processFileList(items);
         }
         psia->Release();
     }
