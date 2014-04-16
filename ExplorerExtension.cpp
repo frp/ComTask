@@ -177,7 +177,7 @@ IFACEMETHODIMP ExplorerExtension::Invoke(IShellItemArray *psia, IBindCtx * /* pb
     return S_OK;
 }
 
-static WCHAR const g_progId[] = L"AllFilesystemObjects";
+static WCHAR const g_progId[] = L"*";
 
 HRESULT ExplorerExtension::RegisterUnRegister(bool fRegister)
 {
