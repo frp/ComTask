@@ -1,14 +1,16 @@
 #pragma once
 #include <fstream>
 #include <list>
-#include "FileItem.h"
 #include <cstdint>
+
+#include "FileItem.h"
+#include "OrderedLogger.h"
 
 class FileProcessor
 {
-	std::wofstream & m_log;
+	OrderedLogger & m_logger;
 public:
-	FileProcessor(std::wofstream & log);
+	FileProcessor(OrderedLogger & logger);
 	void processFileList(std::list<FileItem> & files);
 	void processFile(const FileItem & file);
 private:

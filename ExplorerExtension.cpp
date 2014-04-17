@@ -191,7 +191,8 @@ DWORD ExplorerExtension::_ThreadProc()
 				profile += L'\\';
 			wofstream logfile(profile + L"calclog.txt", wios::out | wios::app);
 			logfile.imbue(std::locale(logfile.getloc(), new std::codecvt_utf8_utf16<wchar_t>));
-			FileProcessor processor(logfile);
+			OrderedLogger logger(OrderedLogger(logfile, true));
+			FileProcessor processor(logger);
 			processor.processFileList(items);
         }
         psia->Release();

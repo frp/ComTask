@@ -182,6 +182,7 @@
     <ClCompile Include="dll.cpp" />
     <ClCompile Include="ExplorerExtension.cpp" />
     <ClCompile Include="FileProcessor.cpp" />
+    <ClCompile Include="OrderedLogger.cpp" />
     <ClCompile Include="RegisterExtension.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -192,6 +193,7 @@
     <ClInclude Include="ExplorerExtension.h" />
     <ClInclude Include="FileItem.h" />
     <ClInclude Include="FileProcessor.h" />
+    <ClInclude Include="OrderedLogger.h" />
     <ClInclude Include="RegisterExtension.h" />
     <ClInclude Include="ShellHelpers.h" />
   </ItemGroup>

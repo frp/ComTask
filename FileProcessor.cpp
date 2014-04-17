@@ -2,13 +2,11 @@
 #include <fstream>
 #include <string>
 #include <boost/format.hpp>
+#include <boost/thread/mutex.hpp>
 using namespace std;
 using boost::posix_time::ptime;
-
-static ptime now()
-{
-	return boost::posix_time::second_clock::local_time();
-}
+using boost::mutex;
+using boost::wformat;
 
 static wstring humanReadableSize(int64_t size)
 {
@@ -16,7 +14,6 @@ static wstring humanReadableSize(int64_t size)
 	static const int64_t mib = kib * kib;
 	static const int64_t gib = mib * kib;
 	static const int64_t tib = gib * kib;
-	using boost::wformat;
 	if (size < kib)
 		return str(wformat(L"%1%") % size);
 	else if (size < mib)
@@ -29,30 +26,24 @@ static wstring humanReadableSize(int64_t size)
 		return str(wformat(L"%.2f TB") % (double(size) / tib));
 }
 
-FileProcessor::FileProcessor(std::wofstream & log) : m_log(log)
-{
-}
+FileProcessor::FileProcessor(OrderedLogger & logger) : m_logger(logger){}
 
 void FileProcessor::processFileList(std::list<FileItem> & files)
 {
-	using namespace std;
 	files.sort();
-	m_log << "[ " << now() << "] Selection processing started"  << endl;
+	m_logger(L"Selection processing started");
 	for (auto & file : files)
 	{
 		processFile(file);
 	}
-	m_log << "[ " << now() << "] Selection processing finished" << endl;
+	m_logger(L"Selection processing finished");
 }
 
 void FileProcessor::processFile(const FileItem & file)
 {
 	uint32_t checkSum = calcCheckSum(file);
-	m_log << "[ " << now() << " ] File processed" << endl
-		<< "Name: " << file.name << endl
-		<< "Size: " << humanReadableSize(file.size) << endl
-		<< "Creation data: " << file.created_at << endl
-		<< "Checksum: " << checkSum << " (0x" << hex << checkSum << ")" << dec << endl;
+	m_logger(str(wformat(L"File processed\n\tName: %1%\n\tSize: %2%\n\tCreation data: %3%\n\tChecksum: %4%")
+		% file.name % humanReadableSize(file.size) % file.created_at % checkSum)); //<< " (0x" << hex << checkSum << ")" << dec << endl;
 }
 
 uint32_t FileProcessor::calcCheckSum(const FileItem & fi)
