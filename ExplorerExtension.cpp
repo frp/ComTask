@@ -189,7 +189,7 @@ DWORD ExplorerExtension::_ThreadProc()
 			wstring profile = _wgetenv(L"userprofile");
 			if (profile[profile.size() - 1] != L'\\')
 				profile += L'\\';
-			wofstream logfile(profile + L"calclog.txt", wios::out | wios::app);
+			wofstream logfile(profile + L"calclog.txt");
 			logfile.imbue(std::locale(logfile.getloc(), new std::codecvt_utf8_utf16<wchar_t>));
 			OrderedLogger logger(OrderedLogger(logfile, true));
 			FileProcessor processor(logger);
