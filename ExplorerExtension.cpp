@@ -113,6 +113,20 @@ IFACEMETHODIMP ExplorerExtension::GetSite(REFIID riid, void **ppv)
 	return m_site ? m_site->QueryInterface(riid, ppv) : E_FAIL;
 }
 
+int64_t getFileSize(const wchar_t * name)
+{
+	HANDLE hFile = CreateFileW(name, GENERIC_READ, FILE_SHARE_WRITE, NULL, OPEN_EXISTING,
+		FILE_ATTRIBUTE_NORMAL, NULL);
+	if (hFile == INVALID_HANDLE_VALUE) return -1;
+	LARGE_INTEGER result;
+	BOOL succeed = GetFileSizeEx(hFile, &result);
+	CloseHandle(hFile);
+	if (succeed)
+		return result.QuadPart;
+	else
+		return -1;
+}
+
 DWORD ExplorerExtension::_ThreadProc()
 {
 	using namespace std;
@@ -134,12 +148,22 @@ DWORD ExplorerExtension::_ThreadProc()
 			hr = GetItemAt(psia, i, IID_PPV_ARGS(&psi));
 			if (SUCCEEDED(hr))
 			{
-				PWSTR pszName;
-				hr = psi->GetDisplayName(SIGDN_PARENTRELATIVEPARSING, &pszName);
+				PWSTR shortName;
+				hr = psi->GetDisplayName(SIGDN_PARENTRELATIVEPARSING, &shortName);
 				if (SUCCEEDED(hr))
 				{
-					items.push_back({ pszName, 0, ptime() });
-					CoTaskMemFree(pszName);
+					PWSTR fullName;
+					hr = psi->GetDisplayName(SIGDN_FILESYSPATH, &fullName);
+					if (SUCCEEDED(hr))
+					{
+						int64_t size = getFileSize(fullName);
+						if (size != -1)
+							items.push_back({ shortName, fullName, size, ptime() });
+						else
+							hr = E_FAIL;
+						CoTaskMemFree(fullName);
+					}
+					CoTaskMemFree(shortName);
 				}
 				psi->Release();
 			}

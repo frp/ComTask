@@ -12,6 +12,6 @@ void FileProcessor::processFileList(std::list<FileItem> & files)
 	m_log << "Items:" << endl;
 	for (auto & file : files)
 	{
-		m_log << file.name << "\n";
+		m_log << file.name << ": " << file.size << "\n";
 	}
 }

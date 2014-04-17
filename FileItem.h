@@ -6,6 +6,7 @@
 struct FileItem
 {
 	std::wstring name;
+	std::wstring full_name;
 	std::uint64_t size;
 	boost::posix_time::ptime created_at;
 
