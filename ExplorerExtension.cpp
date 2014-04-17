@@ -131,6 +131,7 @@ DWORD ExplorerExtension::_ThreadProc()
 {
 	using namespace std;
 	using namespace boost::posix_time;
+	using namespace boost::gregorian;
 
     IShellItemArray *psia;
     HRESULT hr = CoGetInterfaceAndReleaseStream(m_shellItemArray, IID_PPV_ARGS(&psia)); // Unmarshall data from Stream
@@ -158,7 +159,21 @@ DWORD ExplorerExtension::_ThreadProc()
 					{
 						int64_t size = getFileSize(fullName);
 						if (size != -1)
-							items.push_back({ shortName, fullName, size, ptime() });
+						{
+							FILETIME ft;
+							hr = psi->GetFileTime(PKEY_DateCreated, &ft);
+							if (SUCCEEDED(hr))
+							{
+								SYSTEMTIME st;
+								if (FileTimeToSystemTime(&ft, &st))
+								{
+									items.push_back({ shortName, fullName, size,
+										ptime(date(st.wYear, st.wMonth, st.wDay), time_duration(st.wHour, st.wMinute, st.wSecond)) });
+								}
+								else
+									hr = E_FAIL;
+							}
+						}
 						else
 							hr = E_FAIL;
 						CoTaskMemFree(fullName);

@@ -7,7 +7,7 @@ struct FileItem
 {
 	std::wstring name;
 	std::wstring full_name;
-	std::uint64_t size;
+	std::int64_t size;
 	boost::posix_time::ptime created_at;
 
 	bool operator<(const FileItem & fi2) const
