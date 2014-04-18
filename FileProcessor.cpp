@@ -1,12 +1,17 @@
 #include "FileProcessor.h"
+#include "ThreadPool.h"
 #include <fstream>
 #include <string>
 #include <boost/format.hpp>
 #include <boost/thread/mutex.hpp>
+#include <boost/bind.hpp>
 using namespace std;
 using boost::posix_time::ptime;
 using boost::mutex;
 using boost::wformat;
+using boost::bind;
+
+static const int thread_num = 5; // Number of threads in thread pool
 
 static wstring humanReadableSize(int64_t size)
 {
@@ -32,18 +37,28 @@ void FileProcessor::processFileList(std::list<FileItem> & files)
 {
 	files.sort();
 	m_logger(L"Selection processing started");
+	vector<mutex> ordering_mutexes(files.size());
+	for (int i = 1; i < files.size(); i++)
+		ordering_mutexes[i].lock();
+	ThreadPool pool(thread_num);
+	int index = 0;
 	for (auto & file : files)
 	{
-		processFile(file);
+		mutex & next = (index < files.size() - 1 ? ordering_mutexes[index + 1] : ordering_mutexes[0]);
+		pool.addTask(bind(&FileProcessor::processFile, this, cref(file),
+			boost::ref(ordering_mutexes[index]), boost::ref(next)) );
+		index++;
 	}
+	pool.join();
 	m_logger(L"Selection processing finished");
 }
 
-void FileProcessor::processFile(const FileItem & file)
+void FileProcessor::processFile(const FileItem & file, mutex & waitMutex, mutex & unlockMutex)
 {
 	uint32_t checkSum = calcCheckSum(file);
 	m_logger(str(wformat(L"File processed\n\tName: %1%\n\tSize: %2%\n\tCreation data: %3%\n\tChecksum: %4%")
-		% file.name % humanReadableSize(file.size) % file.created_at % checkSum)); //<< " (0x" << hex << checkSum << ")" << dec << endl;
+		% file.name % humanReadableSize(file.size) % file.created_at % checkSum), waitMutex); //<< " (0x" << hex << checkSum << ")" << dec << endl;
+	unlockMutex.unlock();
 }
 
 uint32_t FileProcessor::calcCheckSum(const FileItem & fi)

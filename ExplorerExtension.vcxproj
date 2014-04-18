@@ -184,6 +184,7 @@
     <ClCompile Include="FileProcessor.cpp" />
     <ClCompile Include="OrderedLogger.cpp" />
     <ClCompile Include="RegisterExtension.cpp" />
+    <ClCompile Include="ThreadPool.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Dll.def" />
@@ -196,6 +197,7 @@
     <ClInclude Include="OrderedLogger.h" />
     <ClInclude Include="RegisterExtension.h" />
     <ClInclude Include="ShellHelpers.h" />
+    <ClInclude Include="ThreadPool.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
