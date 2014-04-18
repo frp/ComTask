@@ -11,7 +11,7 @@ using boost::mutex;
 using boost::wformat;
 using boost::bind;
 
-static wstring humanReadableSize(int64_t size)
+static wstring humanReadableSize(const int64_t& size)
 {
 	static const int64_t kib = 1024;
 	static const int64_t mib = kib * kib;
