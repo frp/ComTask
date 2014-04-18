@@ -199,8 +199,7 @@ DWORD ExplorerExtension::_ThreadProc()
 				profile += L'\\';
 			wofstream logfile(profile + file_name);
 			logfile.imbue(std::locale(logfile.getloc(), new std::codecvt_utf8_utf16<wchar_t>));
-			OrderedLogger logger(OrderedLogger(logfile, true));
-			FileProcessor processor(logger);
+			FileProcessor processor(logfile, true);
 			processor.processFileList(items);
         }
         psia->Release();

@@ -31,7 +31,7 @@ static wstring humanReadableSize(int64_t size)
 		return str(wformat(L"%.2f TB") % (double(size) / tib));
 }
 
-FileProcessor::FileProcessor(OrderedLogger & logger) : m_logger(logger), m_nextIndex(0){}
+FileProcessor::FileProcessor(wostream & sink, bool timestamps): m_nextIndex(0), m_logger(sink, timestamps) {}
 
 void FileProcessor::processFileList(std::list<FileItem> & files)
 {

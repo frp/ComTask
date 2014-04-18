@@ -22,8 +22,7 @@ void createDummyFile(const char * name, initializer_list<uint8_t> data) {
 
 TEST(FileProcessorTest, ShouldLogProcessBeginningAndEnding) {
 	wostringstream sink;
-	OrderedLogger logger(sink, false);
-	FileProcessor processor(logger);
+	FileProcessor processor(sink, false);
 	list<FileItem> empty_list;
 	processor.processFileList(empty_list);
 	EXPECT_EQ(begin_str + L"\n" + end_str + L"\n", sink.str());
@@ -31,8 +30,7 @@ TEST(FileProcessorTest, ShouldLogProcessBeginningAndEnding) {
 
 TEST(FileProcessorTest, ShouldLogInformationAboutFilesInAlphabetOrder) {
 	wostringstream sink;
-	OrderedLogger logger(sink, false);
-	FileProcessor processor(logger);
+	FileProcessor processor(sink, false);
 
 	createDummyFile("1", {1, 2, 3, 4});
 	createDummyFile("2", {3, 4, 5, 6});
