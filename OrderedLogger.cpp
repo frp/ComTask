@@ -12,19 +12,39 @@ static ptime now()
 	return boost::posix_time::second_clock::local_time();
 }
 
-OrderedLogger::OrderedLogger(std::wostream & sink, bool timestamps) : m_sink(sink), m_timestamps(timestamps)
+OrderedLogger::OrderedLogger(std::wostream & sink, bool timestamps)
+: m_sink(sink), m_timestamps(timestamps), m_nextNumber(0)
 {
 }
 
-void OrderedLogger::operator()(std::wstring message, boost::mutex & ordering_mutex)
+void OrderedLogger::operator()(std::wstring message, int number)
 {
-	boost::lock_guard<boost::mutex> guard_order(ordering_mutex);
-	operator()(message);
+	{
+		lock_guard<mutex> lg(m_logmutex);
+		m_records[number] = message;
+	}
+	flushRecords();
+}
+
+void OrderedLogger::flushRecords()
+{
+	lock_guard<mutex> lg(m_logmutex);
+	while (m_records.begin()->first == m_nextNumber)
+	{
+		printRecord(m_records.begin()->second);
+		m_records.erase(m_records.begin());
+		m_nextNumber++;
+	}
 }
 
 void OrderedLogger::operator()(std::wstring message)
 {
 	boost::lock_guard<boost::mutex> guard_logging(m_logmutex);
+	printRecord(message);
+}
+
+void OrderedLogger::printRecord(std::wstring message)
+{
 	if (m_timestamps)
 		m_sink << now() << " ";
 	m_sink << message << endl;

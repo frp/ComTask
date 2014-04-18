@@ -31,34 +31,27 @@ static wstring humanReadableSize(int64_t size)
 		return str(wformat(L"%.2f TB") % (double(size) / tib));
 }
 
-FileProcessor::FileProcessor(OrderedLogger & logger) : m_logger(logger){}
+FileProcessor::FileProcessor(OrderedLogger & logger) : m_logger(logger), m_nextIndex(0){}
 
 void FileProcessor::processFileList(std::list<FileItem> & files)
 {
 	files.sort();
 	m_logger(L"Selection processing started");
-	vector<mutex> ordering_mutexes(files.size());
-	for (size_t i = 1; i < files.size(); i++)
-		ordering_mutexes[i].lock();
 	ThreadPool pool(thread_num);
-	size_t index = 0;
 	for (auto & file : files)
 	{
-		mutex & next = (index < files.size() - 1 ? ordering_mutexes[index + 1] : ordering_mutexes[0]);
-		pool.addTask(bind(&FileProcessor::processFile, this, cref(file),
-			boost::ref(ordering_mutexes[index]), boost::ref(next)) );
-		index++;
+		pool.addTask(bind(&FileProcessor::processFile, this, cref(file), m_nextIndex) );
+		m_nextIndex++;
 	}
 	pool.join();
 	m_logger(L"Selection processing finished");
 }
 
-void FileProcessor::processFile(const FileItem & file, mutex & waitMutex, mutex & unlockMutex)
+void FileProcessor::processFile(const FileItem & file, int number)
 {
 	uint32_t checkSum = calcCheckSum(file);
 	m_logger(str(wformat(L"File processed\n\tName: %1%\n\tSize: %2%\n\tCreation data: %3%\n\tChecksum: %4%")
-		% file.name % humanReadableSize(file.size) % file.created_at % checkSum), waitMutex); //<< " (0x" << hex << checkSum << ")" << dec << endl;
-	unlockMutex.unlock();
+		% file.name % humanReadableSize(file.size) % file.created_at % checkSum), number);
 }
 
 uint32_t FileProcessor::calcCheckSum(const FileItem & fi)

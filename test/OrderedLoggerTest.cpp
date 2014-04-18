@@ -43,13 +43,8 @@ TEST(OrderedLoggerTest, LogsPreservingOrder) {
 	using namespace boost;
 	wostringstream sink;
 	OrderedLogger logger(sink, false);
-	mutex mutex1, mutex2;
-	mutex1.lock(); // prevent record2 from logging immediately
-	thread log_thread1([&]()->void{ logger(record2, mutex1); });
-	thread log_thread2([&]()->void{ logger(record1, mutex2); });
-	ASSERT_TRUE(log_thread2.timed_join(posix_time::milliseconds(100)));
-	EXPECT_EQ(expectation1, sink.str());
-	mutex1.unlock(); // let record2 be logged
-	ASSERT_TRUE(log_thread1.timed_join(posix_time::milliseconds(100)));
+	EXPECT_EQ(L"", sink.str());
+	logger(record2, 1);
+	logger(record1, 0);
 	EXPECT_EQ(expectation2, sink.str());
 }

@@ -11,11 +11,12 @@
 class FileProcessor
 {
 	OrderedLogger & m_logger;
+	std::size_t m_nextIndex;
 public:
 	FileProcessor(OrderedLogger & logger);
 	void processFileList(std::list<FileItem> & files);
 private:
-	void processFile(const FileItem & file, boost::mutex & waitMutex, boost::mutex & unlockMutex);
+	void processFile(const FileItem & file, int number);
 	FileProcessor& operator=(const FileProcessor&);
 	std::uint32_t calcCheckSum(const FileItem & fi);
 };
