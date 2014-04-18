@@ -1,13 +1,14 @@
 #include "ThreadPool.h"
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
+#include <iostream>
 using namespace std;
 using boost::thread;
 using boost::lock_guard;
 using boost::mutex;
 using boost::unique_lock;
 
-ThreadPool::ThreadPool(int number_of_threads) : m_threads(number_of_threads), m_stopped(false)
+ThreadPool::ThreadPool(int number_of_threads) : m_threads(number_of_threads)
 {
 	for (int i = 0; i < number_of_threads; i++)
 		m_threads[i] = thread(bind(&ThreadPool::threadProc, this));
@@ -16,59 +17,43 @@ ThreadPool::ThreadPool(int number_of_threads) : m_threads(number_of_threads), m_
 
 ThreadPool::~ThreadPool()
 {
-	m_stopped = true;
-	m_wakeUp.notify_all();
+	/*m_stopped = true;
+	m_wakeUp.notify_all();*/
+	addTask(boost::function<void()>());
 	for (thread & t : m_threads)
 		t.join();
 }
 
 void ThreadPool::join()
 {
-	m_stopped = true;
-	m_wakeUp.notify_all();
+	addTask(boost::function<void()>());
 	for (thread & t : m_threads)
 		t.join();
-	m_stopped = false;
+	while (!m_taskQueue.empty())
+		m_taskQueue.pop();
 	for (int i = 0; i < m_threads.size(); i++)
 		m_threads[i] = thread(bind(&ThreadPool::threadProc, this));
 }
 
 void ThreadPool::threadProc()
 {
-	bool done = false;
-	while (!done)
-	{
-		boost::function<void()> task;
-		if (!popNextTask(task))
-			done = true;
-		else
-			task();
-	}
-}
-
-bool ThreadPool::popNextTask(boost::function<void()> & f)
-{
 	for (;;)
 	{
-		// Check for new tasks
+		boost::function<void()> task;
 		{
-			lock_guard<mutex> lg(m_queueMutex);
-			if (!m_taskQueue.empty())
-			{
-				f = m_taskQueue.front();
-				m_taskQueue.pop();
-				return true;
-			}
+			unique_lock<mutex> q_lock(m_queueMutex);
+			while (m_taskQueue.empty())
+				m_wakeUp.wait(q_lock);
+			task = m_taskQueue.front();
+			m_taskQueue.pop();
 		}
-
-		// Check if thread pool is stopped
-		if (m_stopped) return false;
-		
-		// Wait for wakeup
+		if (task.empty())
 		{
-			unique_lock<mutex> ul(m_wakeUpMutex);
-			m_wakeUp.wait(ul);
+			addTask(task);
+			break;
 		}
+		else
+			task();
 	}
 }
 
