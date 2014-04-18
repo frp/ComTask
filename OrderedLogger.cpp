@@ -29,7 +29,7 @@ void OrderedLogger::operator()(std::wstring message, int number)
 void OrderedLogger::flushRecords()
 {
 	lock_guard<mutex> lg(m_logmutex);
-	while (m_records.begin()->first == m_nextNumber)
+	while (!m_records.empty() && m_records.begin()->first == m_nextNumber)
 	{
 		printRecord(m_records.begin()->second);
 		m_records.erase(m_records.begin());
