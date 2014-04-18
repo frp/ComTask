@@ -17,7 +17,7 @@ public:
 	FileProcessor(std::wostream & sink, bool timestamps);
 	void processFileList(std::list<FileItem> & files);
 private:
-	void processFile(const FileItem & file, int number);
+	void processFile(const FileItem & file, size_t number);
 	std::uint32_t calcCheckSum(const FileItem & fi);
 };
 

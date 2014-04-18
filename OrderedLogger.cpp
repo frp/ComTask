@@ -17,7 +17,7 @@ OrderedLogger::OrderedLogger(std::wostream & sink, bool timestamps)
 {
 }
 
-void OrderedLogger::operator()(std::wstring message, int number)
+void OrderedLogger::operator()(std::wstring message, size_t number)
 {
 	{
 		lock_guard<mutex> lg(m_logmutex);

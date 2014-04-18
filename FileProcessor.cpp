@@ -47,7 +47,7 @@ void FileProcessor::processFileList(std::list<FileItem> & files)
 	m_logger(L"Selection processing finished");
 }
 
-void FileProcessor::processFile(const FileItem & file, int number)
+void FileProcessor::processFile(const FileItem & file, size_t number)
 {
 	uint32_t checkSum = calcCheckSum(file);
 	m_logger(str(wformat(L"File processed\n\tName: %1%\n\tSize: %2%\n\tCreation data: %3%\n\tChecksum: %4%")

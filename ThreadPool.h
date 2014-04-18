@@ -7,11 +7,12 @@
 
 class ThreadPool
 {
-	std::vector<boost::thread> m_threads;
+	boost::thread_group * m_threads;
 	boost::mutex m_queueMutex;
 	std::queue<boost::function<void()>> m_taskQueue;
 
 	boost::condition_variable m_wakeUp;
+	int m_numberOfThreads;
 
 	void threadProc();
 public:

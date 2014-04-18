@@ -8,31 +8,32 @@ using boost::lock_guard;
 using boost::mutex;
 using boost::unique_lock;
 
-ThreadPool::ThreadPool(int number_of_threads) : m_threads(number_of_threads)
+ThreadPool::ThreadPool(int number_of_threads) : m_numberOfThreads(number_of_threads)
 {
+	m_threads = new boost::thread_group;
 	for (int i = 0; i < number_of_threads; i++)
-		m_threads[i] = thread(bind(&ThreadPool::threadProc, this));
+		m_threads->create_thread(bind(&ThreadPool::threadProc, this));
 }
 
 
 ThreadPool::~ThreadPool()
 {
-	/*m_stopped = true;
-	m_wakeUp.notify_all();*/
 	addTask(boost::function<void()>());
-	for (thread & t : m_threads)
-		t.join();
+	m_threads->join_all();
+	delete m_threads;
 }
 
 void ThreadPool::join()
 {
 	addTask(boost::function<void()>());
-	for (thread & t : m_threads)
-		t.join();
+	m_threads->join_all();
 	while (!m_taskQueue.empty())
 		m_taskQueue.pop();
-	for (size_t i = 0; i < m_threads.size(); i++)
-		m_threads[i] = thread(bind(&ThreadPool::threadProc, this));
+	delete m_threads;
+	m_threads = new boost::thread_group;
+	
+	for (size_t i = 0; i < m_numberOfThreads; i++)
+		m_threads->create_thread(bind(&ThreadPool::threadProc, this));
 }
 
 void ThreadPool::threadProc()
