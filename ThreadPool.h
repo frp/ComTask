@@ -16,6 +16,7 @@ class ThreadPool
 
 	void threadProc();
 public:
+	ThreadPool(); // use one thread per logical processor
 	ThreadPool(int number_of_threads);
 	void addTask(boost::function<void()> f);
 	void join();

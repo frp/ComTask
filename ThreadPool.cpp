@@ -1,12 +1,23 @@
 #include "ThreadPool.h"
+#include <windows.h>
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
-#include <iostream>
 using namespace std;
 using boost::thread;
 using boost::lock_guard;
 using boost::mutex;
 using boost::unique_lock;
+
+int getCountOfHardwareThreads()
+{
+	SYSTEM_INFO si;
+	GetSystemInfo(&si);
+	return si.dwNumberOfProcessors;
+}
+
+ThreadPool::ThreadPool() : ThreadPool(getCountOfHardwareThreads())
+{
+}
 
 ThreadPool::ThreadPool(int number_of_threads) : m_numberOfThreads(number_of_threads)
 {

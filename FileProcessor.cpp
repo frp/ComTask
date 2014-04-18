@@ -11,8 +11,6 @@ using boost::mutex;
 using boost::wformat;
 using boost::bind;
 
-static const int thread_num = 5; // Number of threads in thread pool
-
 static wstring humanReadableSize(int64_t size)
 {
 	static const int64_t kib = 1024;
@@ -37,7 +35,7 @@ void FileProcessor::processFileList(std::list<FileItem> & files)
 {
 	files.sort();
 	m_logger(L"Selection processing started");
-	ThreadPool pool(thread_num);
+	ThreadPool pool;
 	for (auto & file : files)
 	{
 		pool.addTask(bind(&FileProcessor::processFile, this, cref(file), m_nextIndex) );
