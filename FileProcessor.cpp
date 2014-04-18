@@ -64,7 +64,7 @@ void FileProcessor::processFile(const FileItem & file, mutex & waitMutex, mutex 
 uint32_t FileProcessor::calcCheckSum(const FileItem & fi)
 {
 	uint32_t sum = 0;
-	ifstream in(fi.full_name, ios::in | ios::binary);
+	ifstream in(fi.full_name, ios::binary);
 	char c;
 	while (in.get(c)) sum += static_cast<unsigned char>(c);
 	return sum;
