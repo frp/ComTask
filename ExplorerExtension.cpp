@@ -133,6 +133,8 @@ DWORD ExplorerExtension::_ThreadProc()
 	using namespace boost::posix_time;
 	using namespace boost::gregorian;
 
+	MessageBoxW(_hwnd, L"Processing started. Result will be placed in the file \"calclog.txt\" in your user profile directory", L"Calculate the Sum", MB_OK);
+
     IShellItemArray *psia;
     HRESULT hr = CoGetInterfaceAndReleaseStream(m_shellItemArray, IID_PPV_ARGS(&psia)); // Unmarshall data from Stream
     m_shellItemArray = NULL;
