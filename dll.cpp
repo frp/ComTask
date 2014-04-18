@@ -1,6 +1,8 @@
 #include "dll.h"
 #include "ExplorerExtension.h"
 #include <atomic>
+#include <ctime>
+#include <cstdlib>
 
 std::atomic<long> g_refModule = 0;
 

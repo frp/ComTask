@@ -132,8 +132,13 @@ DWORD ExplorerExtension::_ThreadProc()
 	using namespace std;
 	using namespace boost::posix_time;
 	using namespace boost::gregorian;
+	srand(static_cast<unsigned>(time(0)));
 
-	MessageBoxW(_hwnd, L"Processing started. Result will be placed in the file \"calclog.txt\" in your user profile directory", L"Calculate the Sum", MB_OK);
+	wstring file_name = OrderedLogger::generateLogName();
+	while (PathFileExists(file_name.c_str()))
+		file_name = OrderedLogger::generateLogName();
+
+	MessageBoxW(_hwnd, (L"Processing started. Result will be placed in the file \"" + file_name + L"\" in your user profile directory").c_str(), L"Calculate the Sum", MB_OK);
 
     IShellItemArray *psia;
     HRESULT hr = CoGetInterfaceAndReleaseStream(m_shellItemArray, IID_PPV_ARGS(&psia)); // Unmarshall data from Stream
@@ -170,7 +175,8 @@ DWORD ExplorerExtension::_ThreadProc()
 								if (FileTimeToSystemTime(&ft, &st))
 								{
 									items.push_back({ shortName, fullName, size,
-										ptime(date(st.wYear, st.wMonth, st.wDay), time_duration(st.wHour, st.wMinute, st.wSecond)) });
+										ptime(date(st.wYear, st.wMonth, st.wDay),
+										time_duration(st.wHour, st.wMinute, st.wSecond)) });
 								}
 								else
 									hr = E_FAIL;
@@ -191,7 +197,7 @@ DWORD ExplorerExtension::_ThreadProc()
 			wstring profile = _wgetenv(L"userprofile");
 			if (profile[profile.size() - 1] != L'\\')
 				profile += L'\\';
-			wofstream logfile(profile + L"calclog.txt");
+			wofstream logfile(profile + file_name);
 			logfile.imbue(std::locale(logfile.getloc(), new std::codecvt_utf8_utf16<wchar_t>));
 			OrderedLogger logger(OrderedLogger(logfile, true));
 			FileProcessor processor(logger);

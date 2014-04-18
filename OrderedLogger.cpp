@@ -1,6 +1,7 @@
 #include "OrderedLogger.h"
 #include <boost/thread/lock_guard.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <cstdlib>
 using namespace std;
 using boost::posix_time::ptime;
 using boost::mutex;
@@ -27,4 +28,14 @@ void OrderedLogger::operator()(std::wstring message)
 	if (m_timestamps)
 		m_sink << now() << " ";
 	m_sink << message << endl;
+}
+
+static const wstring chars_to_gen = L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+wstring OrderedLogger::generateLogName()
+{
+	wstring result = L"log-";
+	for (int i = 0; i < 7; i++)
+		result += chars_to_gen[rand() % chars_to_gen.size()];
+	return result + L".txt";
 }
