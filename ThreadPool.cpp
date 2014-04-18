@@ -31,7 +31,7 @@ void ThreadPool::join()
 		t.join();
 	while (!m_taskQueue.empty())
 		m_taskQueue.pop();
-	for (int i = 0; i < m_threads.size(); i++)
+	for (size_t i = 0; i < m_threads.size(); i++)
 		m_threads[i] = thread(bind(&ThreadPool::threadProc, this));
 }
 

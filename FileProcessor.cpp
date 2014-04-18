@@ -38,10 +38,10 @@ void FileProcessor::processFileList(std::list<FileItem> & files)
 	files.sort();
 	m_logger(L"Selection processing started");
 	vector<mutex> ordering_mutexes(files.size());
-	for (int i = 1; i < files.size(); i++)
+	for (size_t i = 1; i < files.size(); i++)
 		ordering_mutexes[i].lock();
 	ThreadPool pool(thread_num);
-	int index = 0;
+	size_t index = 0;
 	for (auto & file : files)
 	{
 		mutex & next = (index < files.size() - 1 ? ordering_mutexes[index + 1] : ordering_mutexes[0]);
