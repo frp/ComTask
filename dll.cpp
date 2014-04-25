@@ -6,15 +6,11 @@
 
 std::atomic<long> g_refModule = 0;
 
-// Handle the the DLL's module
-HINSTANCE g_hInst = NULL;
-
 // Standard DLL functions
 STDAPI_(BOOL) DllMain(HINSTANCE hInstance, DWORD dwReason, void *)
 {
     if (dwReason == DLL_PROCESS_ATTACH)
-    {
-        g_hInst = hInstance;
+	{
         DisableThreadLibraryCalls(hInstance);
     }
     return TRUE;
